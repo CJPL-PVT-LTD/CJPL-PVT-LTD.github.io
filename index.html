@@ -863,6 +863,9 @@
         let revenueChartInstance = null;
         let trendChartInstance = null;
 
+        // --- ADMIN CONFIGURATION ---
+        const ADMIN_EMAILS = ['dorjisherab2021@gmail.com', 'sonamcheki1984@gmail.com'];
+
         // --- CUSTOM ALERT/CONFIRM ---
         window.showDialog = (type, title, message, onConfirm = null) => {
             const modal = document.getElementById('custom-dialog');
@@ -923,11 +926,15 @@
                 await signInWithEmailAndPassword(auth, email, pass);
                 // Success is handled by onAuthStateChanged
             } catch (error) {
-                // SPECIAL LOGIC: AUTO-CREATE CEO ACCOUNT IF NOT EXISTS
-                if (error.code === 'auth/user-not-found' && email === 'dorjisherab2021@gmail.com') {
+                // SPECIAL LOGIC: AUTO-CREATE ADMIN ACCOUNTS IF NOT EXISTS
+                if (error.code === 'auth/user-not-found' && ADMIN_EMAILS.includes(email)) {
                     try {
                          const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                         await updateProfile(userCredential.user, { displayName: "Sherab Dorjee" });
+                         let newName = "Admin User";
+                         if(email === 'dorjisherab2021@gmail.com') newName = "Sherab Dorjee";
+                         if(email === 'sonamcheki1984@gmail.com') newName = "Sonam Cheki";
+                         
+                         await updateProfile(userCredential.user, { displayName: newName });
                          window.showToast("Admin Account Created & Logged In");
                          return; // onAuthStateChanged will handle the rest
                     } catch (createError) {
@@ -955,11 +962,19 @@
                 document.getElementById('main-app').classList.remove('hidden');
                 
                 // Identify Role based on Email
-                const isAdmin = user.email === 'dorjisherab2021@gmail.com';
+                const isAdmin = ADMIN_EMAILS.includes(user.email);
                 
                 // Update UI Profile
-                const name = user.displayName || (isAdmin ? "Sherab Dorjee" : "Staff Member");
-                const role = isAdmin ? "CEO & Super Admin" : "Authorized Staff";
+                let name = user.displayName;
+                if(!name) {
+                    if(user.email === 'dorjisherab2021@gmail.com') name = "Sherab Dorjee";
+                    else if(user.email === 'sonamcheki1984@gmail.com') name = "Sonam Cheki";
+                    else name = "Staff Member";
+                }
+                
+                let role = "Authorized Staff";
+                if(isAdmin) role = "Management & Admin";
+                if(user.email === 'dorjisherab2021@gmail.com') role = "CEO & Super Admin";
                 
                 document.getElementById('user-name').innerText = name;
                 document.getElementById('user-role').innerText = role;
@@ -1154,7 +1169,7 @@
                  const tbody = document.getElementById('sales-table-body');
                  tbody.innerHTML = '';
                  let count = 0;
-                 const isAdmin = currentUser && currentUser.email === 'dorjisherab2021@gmail.com';
+                 const isAdmin = currentUser && ADMIN_EMAILS.includes(currentUser.email);
                  
                  recentSalesData = []; // Clear for chart
 
@@ -1300,7 +1315,7 @@
                     };
                     const badgeClass = statusColors[data.status] || 'bg-slate-100 text-slate-600';
                     
-                    const isAdmin = currentUser && currentUser.email === 'dorjisherab2021@gmail.com';
+                    const isAdmin = currentUser && ADMIN_EMAILS.includes(currentUser.email);
                     const deleteAction = isAdmin ? `<button onclick="window.deleteProject('${doc.id}')" class="text-slate-400 hover:text-red-500 transition ml-2"><i class="fas fa-trash"></i></button>` : '';
 
                     const item = `

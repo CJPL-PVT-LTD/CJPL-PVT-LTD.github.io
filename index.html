@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M/s. Chimi Jamyang Pvt Ltd - Business Dashboard</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- jsPDF & AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb', // Primary Blue
+                            700: '#1d4ed8',
+                            800: '#1e40af', // Dark Blue
+                            900: '#1e3a8a',
+                            950: '#172554',
+                        },
+                        surface: '#f8fafc',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                        'scale-in': 'scaleIn 0.3s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        scaleIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar for Webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .chat-bubble {
+            position: relative;
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        /* Markdown-like styling for AI response */
+        .markdown-body ul { list-style-type: disc; margin-left: 20px; }
+        .markdown-body ol { list-style-type: decimal; margin-left: 20px; }
+        .markdown-body strong { font-weight: 600; color: #1e3a8a; }
+
+        /* Progress Bar Stripes */
+        .progress-striped {
+            background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+            background-size: 1rem 1rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-700 antialiased selection:bg-brand-200 selection:text-brand-900 text-sm overflow-hidden">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-6 right-6 bg-emerald-600 text-white px-5 py-3 rounded-lg shadow-2xl transform translate-y-[-200%] transition-transform duration-500 z-[60] flex items-center space-x-3 border border-emerald-500/50">
+        <i class="fas fa-check-circle text-emerald-200 text-lg"></i>
+        <span class="font-medium text-sm" id="toast-msg">Action Successful!</span>
+    </div>
+
+    <!-- CUSTOM DIALOG (Replaces Alert/Confirm) -->
+    <div id="custom-dialog" class="fixed inset-0 bg-slate-900/70 hidden flex items-center justify-center z-[70] backdrop-blur-sm transition-opacity duration-200">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-scale-in border border-white/20 transform">
+            <div class="text-center mb-4">
+                <div id="dialog-icon-container" class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-xl transition-colors duration-300">
+                    <i id="dialog-icon" class="fas"></i>
+                </div>
+                <h3 id="dialog-title" class="text-lg font-bold text-slate-800">Title</h3>
+                <p id="dialog-message" class="text-sm text-slate-500 mt-1">Message content goes here.</p>
+            </div>
+            <div class="flex justify-center space-x-3 pt-2" id="dialog-actions">
+                <!-- Buttons injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-gradient-to-br from-slate-900 to-brand-900 flex items-center justify-center p-4">
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-2xl shadow-2xl w-full max-w-sm animate-scale-in relative">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/30 mx-auto mb-4">
+                    <i class="fas fa-building text-white text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white tracking-wide">CJPL Dashboard</h1>
+                <p class="text-slate-300 text-xs uppercase tracking-wider font-medium mt-1">Staff Access Portal</p>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-300 uppercase tracking-wider ml-1">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-slate-400"><i class="fas fa-envelope"></i></span>
+                        <input type="email" id="login-email" class="w-full bg-slate-800/50 border border-slate-600 text-white rounded-lg py-2.5 pl-10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder-slate-500 text-sm" placeholder="email@example.com" required>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-300 uppercase tracking-wider ml-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-slate-400"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="login-password" class="w-full bg-slate-800/50 border border-slate-600 text-white rounded-lg py-2.5 pl-10 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder-slate-500 text-sm" placeholder="Enter password" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white py-2.5 rounded-lg font-bold shadow-lg shadow-brand-600/30 transition-all transform hover:scale-[1.02] active:scale-95 mt-2">
+                    Secure Login <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </form>
+            
+            <div class="mt-6 pt-6 border-t border-white/10 text-center">
+                 <p class="text-slate-400 text-xs mb-3">Are you a customer?</p>
+                 <button onclick="openPublicReview()" class="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg font-medium text-sm transition flex items-center justify-center border border-white/10">
+                    <i class="fas fa-comment-smile mr-2 text-yellow-400"></i> Give Feedback (No Login)
+                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP LAYOUT (Hidden by default) -->
+    <div id="main-app" class="hidden flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white flex flex-col shadow-2xl z-20 transition-all duration-300">
+            <div class="p-5 border-b border-slate-700/50 bg-slate-900/50">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-brand-400 to-brand-600 rounded-lg flex items-center justify-center shadow-lg shadow-brand-500/30">
+                        <i class="fas fa-building text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold tracking-wide">CJPL Dashboard</h1>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Construction Solutions</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+                <p class="px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-2">Main Menu</p>
+                
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-item group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-brand-600 text-white shadow-lg shadow-brand-900/20 transition-all duration-200 text-sm">
+                    <i class="fas fa-chart-pie w-5 text-center group-hover:scale-110 transition-transform"></i>
+                    <span class="font-medium">Sales Overview</span>
+                </button>
+
+                <button onclick="switchTab('projects')" id="btn-projects" class="nav-item group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200 text-sm">
+                    <i class="fas fa-hard-hat w-5 text-center text-orange-400 group-hover:scale-110 transition-transform"></i>
+                    <span class="font-medium">Projects & Contracts</span>
+                </button>
+                
+                 <button onclick="switchTab('reviews')" id="btn-reviews" class="nav-item group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200 text-sm">
+                    <i class="fas fa-star w-5 text-center text-yellow-400 group-hover:spin-slow"></i>
+                    <span class="font-medium">Customer Reviews</span>
+                </button>
+                
+                <button onclick="switchTab('ai')" id="btn-ai" class="nav-item group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200 relative overflow-hidden text-sm">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fas fa-robot w-5 text-center text-brand-300 group-hover:rotate-12 transition-transform"></i>
+                    <span class="font-medium">AI Analyst</span>
+                </button>
+                
+                 <!-- Report Button -->
+                 <button onclick="document.getElementById('report-modal').classList.remove('hidden')" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200 mt-2 text-sm">
+                    <i class="fas fa-file-contract w-5 text-center text-brand-300"></i>
+                    <span class="font-medium">Monthly Report</span>
+                </button>
+
+                <!-- Admin Only: Assessment -->
+                <button onclick="switchTab('assessment')" id="btn-assessment" class="nav-item group w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200 mt-6 text-sm hidden border border-emerald-500/30 bg-emerald-900/10" data-role="admin">
+                    <i class="fas fa-users-cog w-5 text-center text-emerald-400 group-hover:spin-slow"></i>
+                    <span class="font-medium text-emerald-100">Staff Assessment</span>
+                </button>
+            </nav>
+
+            <!-- User Profile Section -->
+            <div class="p-4 bg-slate-900/80 backdrop-blur-sm border-t border-slate-700/50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-brand-300 font-bold border border-slate-600" id="user-avatar">
+                            SD
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-xs font-bold text-white truncate w-24" id="user-name">Sherab Dorjee</p>
+                            <p class="text-[10px] text-brand-400 uppercase tracking-wide font-medium" id="user-role">Authorized Staff</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="document.getElementById('password-modal').classList.remove('hidden')" class="text-slate-400 hover:text-brand-400 transition-colors p-1.5" title="Change Password">
+                            <i class="fas fa-key"></i>
+                        </button>
+                        <button onclick="handleLogout()" class="text-slate-400 hover:text-red-400 transition-colors p-1.5" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto bg-slate-50 relative">
+            
+            <div class="p-6 max-w-7xl mx-auto min-h-screen">
+                
+                <!-- TAB 1: SALES DASHBOARD -->
+                <div id="tab-dashboard" class="content-tab animate-fade-in-up">
+                    <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800 tracking-tight" id="month-header">Monthly Performance</h2>
+                            <p class="text-slate-500 mt-1 flex items-center gap-2 text-sm">
+                                <i class="far fa-calendar-alt"></i>
+                                <span id="current-month-display">...</span>
+                            </p>
+                        </div>
+                        <button onclick="openTargetModal()" class="hidden bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-lg shadow-lg shadow-slate-900/20 transition-all duration-200 flex items-center text-sm font-medium" data-role="admin">
+                            <i class="fas fa-bullseye mr-2 text-red-400"></i> Set Monthly Targets
+                        </button>
+                    </header>
+
+                    <!-- HERO: BIG CALENDAR / TARGET VISUAL -->
+                    <div class="bg-gradient-to-r from-slate-800 to-brand-900 rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden border border-white/10">
+                        <!-- BG Decorations -->
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
+                        <div class="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/10 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
+
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-6">
+                                <div>
+                                    <p class="text-brand-200 text-xs font-bold uppercase tracking-widest mb-1">Company-wide Revenue</p>
+                                    <h3 class="text-4xl md:text-5xl font-bold text-white tracking-tight" id="hero-live-total">Nu. 0</h3>
+                                    <p class="text-emerald-300 text-sm font-medium mt-1"><i class="fas fa-arrow-up"></i> Live Updates</p>
+                                </div>
+                                <div class="text-right">
+                                     <div class="inline-block bg-white/10 backdrop-blur-md rounded-xl px-4 py-3 border border-white/10">
+                                        <p class="text-[10px] text-slate-300 uppercase tracking-wider font-bold mb-1">Month Ends In</p>
+                                        <div class="text-2xl font-mono font-bold text-white flex items-center gap-2">
+                                            <i class="far fa-clock text-brand-400 animate-pulse"></i>
+                                            <span id="days-remaining">00</span> <span class="text-sm font-sans font-normal text-slate-400">Days</span>
+                                        </div>
+                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Progress System -->
+                            <div class="mb-2 flex justify-between text-xs font-medium text-slate-300">
+                                <span>Progress</span>
+                                <span id="hero-percentage">0%</span>
+                            </div>
+                            <div class="h-6 w-full bg-slate-700/50 rounded-full overflow-hidden border border-white/5 relative">
+                                <div id="hero-progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-brand-400 progress-striped animate-pulse-slow transition-all duration-1000 ease-out" style="width: 0%"></div>
+                                <!-- Target Marker Line -->
+                                <div class="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] z-20" style="left: 100%" title="Target"></div>
+                            </div>
+                            <div class="flex justify-between mt-3">
+                                <span class="text-xs text-slate-400">0</span>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-300 uppercase font-bold">Monthly Target</p>
+                                    <p class="text-lg font-bold text-white" id="hero-target-total">Nu. --</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Analytics Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 class="font-bold text-slate-700 mb-4 text-sm flex items-center"><i class="fas fa-chart-bar mr-2 text-brand-500"></i> Revenue vs Targets</h3>
+                            <div class="h-[250px] w-full">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 class="font-bold text-slate-700 mb-4 text-sm flex items-center"><i class="fas fa-chart-line mr-2 text-purple-500"></i> Recent Sales Trend</h3>
+                            <div class="h-[250px] w-full">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BRANCH CARDS with Top Brand -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10" id="branch-cards-container">
+                        <!-- Populated by JS for reactivity -->
+                    </div>
+
+                    <!-- Recent Entries Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <h3 class="font-semibold text-slate-700 flex items-center text-sm">
+                                <i class="fas fa-history text-brand-500 mr-2"></i> Recent Sales Logs
+                            </h3>
+                            <span class="text-[10px] font-medium text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">History</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 text-slate-500 text-[10px] uppercase tracking-wider font-semibold border-b border-slate-100">
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3">Branch</th>
+                                        <th class="p-3">Amount</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sales-table-body" class="text-sm divide-y divide-slate-50">
+                                    <!-- JS Injects Rows Here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: PROJECTS -->
+                <div id="tab-projects" class="content-tab hidden animate-fade-in-up">
+                    <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800 tracking-tight">Project Status</h2>
+                            <p class="text-slate-500 mt-1 text-sm">Track Government & Real Estate Contracts.</p>
+                        </div>
+                        <button onclick="openProjectModal()" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-lg shadow-lg shadow-orange-600/20 transition-all duration-200 flex items-center text-sm font-medium">
+                            <i class="fas fa-plus mr-2"></i> New Project
+                        </button>
+                    </header>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Government Projects -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+                            <div class="bg-slate-50 border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-700 flex items-center">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mr-3">
+                                        <i class="fas fa-landmark"></i>
+                                    </div>
+                                    Government Projects
+                                </h3>
+                                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-full" id="count-gov">0</span>
+                            </div>
+                            <div class="p-4 space-y-3 overflow-y-auto max-h-[600px]" id="list-gov">
+                                <!-- Items injected here -->
+                                <p class="text-center text-slate-400 text-xs py-10">No active government projects.</p>
+                            </div>
+                        </div>
+
+                        <!-- Real Estate Builders -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+                            <div class="bg-slate-50 border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-700 flex items-center">
+                                    <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3">
+                                        <i class="fas fa-city"></i>
+                                    </div>
+                                    Real Estate Builders
+                                </h3>
+                                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full" id="count-re">0</span>
+                            </div>
+                            <div class="p-4 space-y-3 overflow-y-auto max-h-[600px]" id="list-re">
+                                <!-- Items injected here -->
+                                <p class="text-center text-slate-400 text-xs py-10">No active builder contracts.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: CUSTOMER REVIEWS (New) -->
+                <div id="tab-reviews" class="content-tab hidden animate-fade-in-up">
+                    <header class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800 tracking-tight">Customer Sentiment Analysis</h2>
+                        <p class="text-slate-500 mt-1 text-sm">AI-analyzed feedback from public submissions.</p>
+                    </header>
+
+                    <!-- Stats Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                            <div class="relative z-10">
+                                <p class="text-indigo-200 text-xs font-bold uppercase tracking-widest">Average AI CSAT Score</p>
+                                <h3 class="text-5xl font-bold mt-2 flex items-baseline gap-2">
+                                    <span id="avg-csat">0.0</span>
+                                    <span class="text-lg font-normal text-indigo-300">/ 10</span>
+                                </h3>
+                            </div>
+                            <div class="absolute right-0 bottom-0 opacity-10 transform translate-x-4 translate-y-4">
+                                <i class="fas fa-smile text-9xl"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Total Reviews</p>
+                            <h3 class="text-3xl font-bold text-slate-800 mt-1" id="total-reviews">0</h3>
+                        </div>
+
+                         <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Latest Sentiment</p>
+                            <h3 class="text-xl font-bold text-slate-800 mt-1" id="latest-sentiment">--</h3>
+                        </div>
+                    </div>
+
+                    <!-- Reviews Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="reviews-container">
+                        <!-- Reviews injected here -->
+                    </div>
+                </div>
+
+                <!-- TAB 4: AI ANALYST -->
+                <div id="tab-ai" class="content-tab hidden h-[calc(100vh-6rem)] flex flex-col animate-fade-in-up">
+                    <header class="mb-4 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                                <span class="bg-gradient-to-r from-yellow-400 to-orange-500 text-transparent bg-clip-text">CJPL AI Analyst</span>
+                            </h2>
+                            <p class="text-slate-500 text-sm">Powered by Llama 3.3 (70B) via Groq. Analyzes your live Firebase data.</p>
+                        </div>
+                        <div class="hidden md:block">
+                            <i class="fas fa-robot text-5xl text-slate-200"></i>
+                        </div>
+                    </header>
+
+                    <!-- Chat Area -->
+                    <div class="flex-1 bg-white border border-slate-200 rounded-xl flex flex-col shadow-lg overflow-hidden relative">
+                        <!-- Chat Background Pattern -->
+                        <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#64748b 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                        <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/30 scroll-smooth">
+                            <div class="flex items-end">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white shadow-md mb-1 mr-2 flex-shrink-0">
+                                    <i class="fas fa-robot text-xs"></i>
+                                </div>
+                                <div class="chat-bubble bg-white text-slate-700 rounded-bl-none border border-slate-100">
+                                    Hello! I have access to your latest <strong>Sales</strong> data. Ask me about revenue trends in Gelephu or compare branch performance.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-white border-t border-slate-100 relative z-10">
+                            <div class="flex items-center space-x-3 bg-slate-50 p-1.5 rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 transition-all">
+                                <input type="text" id="chat-input" placeholder="Ask about sales trends..." class="flex-1 bg-transparent border-none outline-none px-2 text-slate-700 text-sm" onkeypress="handleChatEnter(event)">
+                                <button onclick="sendToGroq()" id="send-btn" class="bg-brand-600 text-white w-9 h-9 rounded-lg hover:bg-brand-700 transition flex items-center justify-center shadow-md shadow-brand-600/20">
+                                    <i class="fas fa-paper-plane text-xs"></i>
+                                </button>
+                            </div>
+                            <div class="text-[10px] text-center text-slate-400 mt-1.5">AI can make mistakes. Check critical data manually.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: STAFF ASSESSMENT (Admin Only) -->
+                <div id="tab-assessment" class="content-tab hidden animate-fade-in-up">
+                    <header class="mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Staff Assessment Portal</h2>
+                        <p class="text-slate-500 mt-1 text-sm">Super Admin Access: Manage Employees & Performance</p>
+                    </header>
+                    
+                    <div class="flex flex-col items-center justify-center h-96 text-center bg-white rounded-2xl border border-dashed border-slate-300">
+                        <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 animate-pulse-slow">
+                            <i class="fas fa-users-cog text-4xl text-emerald-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800">Assessment Module Coming Soon</h3>
+                        <p class="text-slate-500 mt-2 max-w-md text-sm">This feature will allow the CEO to manage Managers, Employees, and conduct comprehensive performance reviews across the organization.</p>
+                        <span class="mt-6 px-4 py-2 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-widest rounded-full">Development In Progress</span>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- PUBLIC REVIEW MODAL -->
+    <div id="public-review-modal" class="fixed inset-0 bg-slate-900/90 hidden flex items-center justify-center z-[80] backdrop-blur-md transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-scale-in relative border border-white/20">
+            <button onclick="document.getElementById('public-review-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3 text-yellow-600 shadow-lg shadow-yellow-500/20">
+                    <i class="fas fa-star text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800">Share Your Experience</h3>
+                <p class="text-sm text-slate-500 mt-1">Help us improve. No login required.</p>
+            </div>
+            <form id="public-review-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Your Name</label>
+                        <input type="text" id="review-name" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-yellow-500 outline-none transition text-sm" placeholder="Optional">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Branch Visited</label>
+                        <select id="review-branch" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-yellow-500 outline-none transition text-sm bg-white">
+                            <option value="gelephu">Gelephu</option>
+                            <option value="phuntsholing">Phuntsholing</option>
+                            <option value="thimphu">Thimphu</option>
+                            <option value="paro">Paro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Your Review</label>
+                    <textarea id="review-text" rows="4" class="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-500 outline-none transition text-sm" placeholder="Tell us about your experience..." required></textarea>
+                </div>
+                <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-yellow-500/30 transition transform hover:scale-[1.02] active:scale-95">
+                    Submit Review <i class="fas fa-paper-plane ml-2"></i>
+                </button>
+                <p class="text-center text-[10px] text-slate-400 mt-2">
+                    <i class="fas fa-robot mr-1"></i> Reviews are analyzed by AI for quality assurance.
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- SALES LOGGING MODAL -->
+    <div id="sales-modal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-scale-in relative border border-white/20">
+            <button onclick="document.getElementById('sales-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="text-center mb-5">
+                <div class="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-3 text-brand-600">
+                    <i class="fas fa-cash-register text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Log Branch Sales</h3>
+                <p class="text-xs text-slate-500">Add revenue for <span id="modal-branch-name" class="font-bold text-slate-700">Selected Branch</span></p>
+            </div>
+            <form id="sales-form" class="space-y-4">
+                <input type="hidden" id="sales-branch-input">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Amount Collected</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-slate-400 text-xs">Nu.</span>
+                        <input type="number" id="sales-amount" class="w-full border border-slate-300 rounded-lg py-2 pl-8 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm font-medium" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('sales-modal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 shadow-lg shadow-brand-600/30 transition font-medium text-sm">Log Sale</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOP BRAND MODAL -->
+    <div id="brand-modal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-scale-in relative border border-white/20">
+            <button onclick="document.getElementById('brand-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="text-center mb-5">
+                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3 text-yellow-600">
+                    <i class="fas fa-trophy text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Daily Top Brand</h3>
+                <p class="text-xs text-slate-500">Log the best performing brand for <span id="brand-modal-branch" class="font-bold"></span> today.</p>
+            </div>
+            <form id="brand-form" class="space-y-4">
+                <input type="hidden" id="brand-branch-input">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Brand Name</label>
+                    <input type="text" id="brand-name" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 outline-none transition text-sm" placeholder="e.g. Asian Paints, Greenply" required>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('brand-modal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 shadow-lg shadow-yellow-600/30 transition font-medium text-sm">Save Brand</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PROJECT MODAL -->
+    <div id="project-modal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-scale-in relative border border-white/20">
+            <button onclick="document.getElementById('project-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="text-center mb-5">
+                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 text-orange-600">
+                    <i class="fas fa-hard-hat text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">New Project Contract</h3>
+                <p class="text-xs text-slate-500">Add a new Gov. Project or Builder Contract</p>
+            </div>
+            <form id="project-form" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Project Name</label>
+                    <input type="text" id="proj-name" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-orange-500 outline-none transition text-sm" placeholder="e.g. Punatsangchhu Hydro Project" required>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Contract Type</label>
+                    <select id="proj-type" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-orange-500 outline-none transition text-sm bg-white">
+                        <option value="gov">Government Project</option>
+                        <option value="re">Real Estate Builder</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Status</label>
+                    <select id="proj-status" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-orange-500 outline-none transition text-sm bg-white">
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Pending">Pending Approval</option>
+                        <option value="Completed">Completed</option>
+                        <option value="At Risk">At Risk / Delayed</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('project-modal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 shadow-lg shadow-orange-600/30 transition font-medium text-sm">Add Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SET TARGETS MODAL (Admin) -->
+    <div id="target-modal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-scale-in relative border border-white/20">
+            <button onclick="document.getElementById('target-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="text-center mb-5">
+                <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-red-400">
+                    <i class="fas fa-bullseye text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Set Monthly Targets</h3>
+                <p class="text-xs text-slate-500">Define goals for this month</p>
+            </div>
+            <form id="target-form" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Gelephu</label>
+                        <input type="number" id="tgt-gelephu" class="w-full border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-slate-500 outline-none text-sm" required>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Phuntsholing</label>
+                        <input type="number" id="tgt-phuntsholing" class="w-full border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-slate-500 outline-none text-sm" required>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Thimphu</label>
+                        <input type="number" id="tgt-thimphu" class="w-full border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-slate-500 outline-none text-sm" required>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Paro</label>
+                        <input type="number" id="tgt-paro" class="w-full border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-slate-500 outline-none text-sm" required>
+                    </div>
+                </div>
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('target-modal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 shadow-lg shadow-slate-900/30 transition font-medium text-sm">Set Targets</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div id="password-modal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-scale-in relative border border-white/20">
+            <button onclick="document.getElementById('password-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="text-center mb-5">
+                <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-600">
+                    <i class="fas fa-lock text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Change Password</h3>
+                <p class="text-xs text-slate-500">Secure your account</p>
+            </div>
+            <form id="password-form" class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">New Password</label>
+                    <input type="password" id="new-pass" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm" required>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Confirm New Password</label>
+                    <input type="password" id="confirm-pass" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm" required>
+                </div>
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('password-modal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 shadow-lg shadow-brand-600/30 transition font-medium text-sm">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- REPORT GENERATOR MODAL -->
+    <div id="report-modal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm overflow-y-auto transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 my-8 relative animate-scale-in">
+             <button onclick="document.getElementById('report-modal').classList.add('hidden')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            
+            <div class="flex justify-between items-end mb-5">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">Monthly KPI Report</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Generate a professional PDF report with AI-driven insights.</p>
+                </div>
+                <button onclick="autoFillReport()" id="ai-fill-btn" class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-4 py-2 rounded-xl shadow-lg shadow-orange-500/30 flex items-center text-xs font-bold transition transform hover:scale-105 active:scale-95">
+                    <i class="fas fa-sparkles mr-2 animate-pulse"></i> Generate with AI
+                </button>
+            </div>
+            
+            <hr class="mb-5 border-slate-100">
+
+            <form id="report-form" class="space-y-4">
+                
+                <!-- Section 0: Letter/Report Body -->
+                <div class="bg-brand-50/50 p-4 rounded-xl border border-brand-100/60">
+                     <h4 class="font-bold text-[10px] text-brand-700 uppercase mb-2 flex items-center">
+                        <i class="fas fa-pen-nib mr-2"></i> 0. AI Management Letter
+                     </h4>
+                     <textarea id="report-letter" rows="5" class="w-full border border-brand-200 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-brand-500 outline-none leading-relaxed bg-white text-slate-700 resize-none" placeholder="Click 'Generate with AI' to create a detailed management letter highlighting improvements and growth..."></textarea>
+                </div>
+
+                <!-- Section 1: Targets -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                    <h4 class="font-bold text-[10px] text-slate-600 uppercase mb-2">1. Sales Targets (for Achievement %)</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="text-[10px] text-slate-500 font-medium">Total Company Target (Nu)</label>
+                            <input type="number" id="target-total" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none" placeholder="Auto-calculated">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-medium">Gelephu</label>
+                            <input type="number" id="target-gelephu" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-medium">Phuntsholing</label>
+                            <input type="number" id="target-phuntsholing" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-medium">Thimphu</label>
+                            <input type="number" id="target-thimphu" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none">
+                        </div>
+                         <div>
+                            <label class="text-[10px] text-slate-500 font-medium">Paro</label>
+                            <input type="number" id="target-paro" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Strategic Highlights -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                    <h4 class="font-bold text-[10px] text-slate-600 uppercase mb-2">2. Strategic Highlights</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="col-span-2">
+                            <label class="text-[10px] text-slate-500 font-medium">Top Performing Brand</label>
+                            <input type="text" id="report-brand" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none" placeholder="Auto-filled by AI">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="text-[10px] text-slate-500 font-medium">CSAT Score (out of 10)</label>
+                            <input type="number" step="0.1" id="report-csat" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none" placeholder="Auto-filled from reviews">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Category Growth -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                    <h4 class="font-bold text-[10px] text-slate-600 uppercase mb-2">3. Monthly Category Growth (%)</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-medium">Construction</label>
+                            <input type="number" step="0.1" id="growth-construction" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none" placeholder="%">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-medium">Electrical</label>
+                            <input type="number" step="0.1" id="growth-electrical" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none" placeholder="%">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-medium">Agri Tools</label>
+                            <input type="number" step="0.1" id="growth-agri" class="w-full border border-slate-200 rounded-lg p-1.5 text-xs focus:border-brand-500 outline-none" placeholder="%">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-end space-x-2 border-t border-slate-100">
+                    <button type="button" onclick="document.getElementById('report-modal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition font-medium text-sm">Cancel</button>
+                    <button type="button" onclick="generatePDF()" class="px-5 py-2 bg-brand-800 text-white rounded-lg hover:bg-brand-900 shadow-lg shadow-brand-800/20 flex items-center transition transform active:scale-95 font-medium text-sm">
+                        <i class="fas fa-file-pdf mr-2"></i> Download PDF Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIREBASE & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, setDoc, deleteDoc, doc, getDoc, query, orderBy, limit, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updatePassword, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        // CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9qlf7VDnzvvKabCFx7w_RchhClk2G-aQ",
+            authDomain: "cjpl-baab0.firebaseapp.com",
+            projectId: "cjpl-baab0",
+            storageBucket: "cjpl-baab0.firebasestorage.app",
+            messagingSenderId: "1002845909210",
+            appId: "1:1002845909210:web:3c4f02e8770e09ff40b5e3",
+            measurementId: "G-F4JCWKZQES"
+        };
+
+        // INIT
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // --- GLOBAL STATE ---
+        let latestSales = null;
+        let currentUser = null;
+        let monthlyTargets = { gelephu: 0, phuntsholing: 0, thimphu: 0, paro: 0 };
+        let monthlyActuals = { gelephu: 0, phuntsholing: 0, thimphu: 0, paro: 0 };
+        let dailyBrands = {};
+        let recentSalesData = []; 
+        let currentAvgCsat = 0;
+        let revenueChartInstance = null;
+        let trendChartInstance = null;
+
+        // --- CUSTOM ALERT/CONFIRM ---
+        window.showDialog = (type, title, message, onConfirm = null) => {
+            const modal = document.getElementById('custom-dialog');
+            const iconContainer = document.getElementById('dialog-icon-container');
+            const icon = document.getElementById('dialog-icon');
+            const titleEl = document.getElementById('dialog-title');
+            const msgEl = document.getElementById('dialog-message');
+            const actionsEl = document.getElementById('dialog-actions');
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            actionsEl.innerHTML = '';
+            modal.classList.remove('hidden');
+
+            if(type === 'alert') {
+                iconContainer.className = 'w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-xl bg-slate-100 text-slate-500';
+                icon.className = 'fas fa-info';
+                
+                const btn = document.createElement('button');
+                btn.className = 'px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 transition';
+                btn.innerText = 'Dismiss';
+                btn.onclick = () => modal.classList.add('hidden');
+                actionsEl.appendChild(btn);
+            } else if(type === 'confirm') {
+                iconContainer.className = 'w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-xl bg-red-100 text-red-500';
+                icon.className = 'fas fa-exclamation-triangle';
+                
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition';
+                cancelBtn.innerText = 'Cancel';
+                cancelBtn.onclick = () => modal.classList.add('hidden');
+                
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition shadow-lg shadow-red-600/30';
+                confirmBtn.innerText = 'Confirm';
+                confirmBtn.onclick = () => {
+                    if(onConfirm) onConfirm();
+                    modal.classList.add('hidden');
+                };
+
+                actionsEl.appendChild(cancelBtn);
+                actionsEl.appendChild(confirmBtn);
+            }
+        };
+
+        // --- LOGIN LOGIC ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+            btn.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                // Success is handled by onAuthStateChanged
+            } catch (error) {
+                // SPECIAL LOGIC: AUTO-CREATE CEO ACCOUNT IF NOT EXISTS
+                if (error.code === 'auth/user-not-found' && email === 'dorjisherab2021@gmail.com') {
+                    try {
+                         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                         await updateProfile(userCredential.user, { displayName: "Sherab Dorjee" });
+                         window.showToast("Admin Account Created & Logged In");
+                         return; // onAuthStateChanged will handle the rest
+                    } catch (createError) {
+                         console.error(createError);
+                         window.showDialog('alert', 'Error', createError.message);
+                    }
+                }
+
+                console.error(error);
+                btn.classList.add('bg-red-600', 'hover:bg-red-500');
+                btn.innerHTML = '<i class="fas fa-times-circle"></i> Auth Failed';
+                setTimeout(() => {
+                    btn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }
+        });
+
+        // --- AUTH STATE OBSERVER ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                
+                // Identify Role based on Email
+                const isAdmin = user.email === 'dorjisherab2021@gmail.com';
+                
+                // Update UI Profile
+                const name = user.displayName || (isAdmin ? "Sherab Dorjee" : "Staff Member");
+                const role = isAdmin ? "CEO & Super Admin" : "Authorized Staff";
+                
+                document.getElementById('user-name').innerText = name;
+                document.getElementById('user-role').innerText = role;
+                document.getElementById('user-avatar').innerText = name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+                
+                // Show Admin-Only Features
+                if(isAdmin) {
+                    document.querySelectorAll('[data-role="admin"]').forEach(el => el.classList.remove('hidden'));
+                } else {
+                    document.querySelectorAll('[data-role="admin"]').forEach(el => el.classList.add('hidden'));
+                }
+
+                if(!document.getElementById('login-form').querySelector('button').disabled) {
+                   window.showToast(`Welcome, ${name}`);
+                }
+                
+                // Fetch Data on Login
+                fetchTargets();
+                setupSalesListeners();
+                setupProjectListeners();
+                setupBrandListeners();
+                setupReviewListeners();
+
+            } else {
+                currentUser = null;
+                document.getElementById('main-app').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('login-form').reset();
+                const btn = document.getElementById('login-form').querySelector('button');
+                btn.innerHTML = 'Secure Login <i class="fas fa-arrow-right ml-2"></i>';
+                btn.disabled = false;
+            }
+        });
+
+        window.handleLogout = async () => {
+            try {
+                await signOut(auth);
+                window.showToast("Logged out successfully");
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        // --- CHANGE PASSWORD LOGIC ---
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPass = document.getElementById('new-pass').value;
+            const confirmPass = document.getElementById('confirm-pass').value;
+
+            if (newPass !== confirmPass) {
+                window.showDialog('alert', 'Validation Error', 'New passwords do not match.');
+                return;
+            }
+
+            if (newPass.length < 6) {
+                window.showDialog('alert', 'Validation Error', 'Password must be at least 6 characters (Firebase Policy).');
+                return;
+            }
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            btn.disabled = true;
+
+            try {
+                if (currentUser) {
+                    await updatePassword(currentUser, newPass);
+                    document.getElementById('password-modal').classList.add('hidden');
+                    e.target.reset();
+                    window.showToast("Password updated successfully");
+                }
+            } catch (error) {
+                console.error(error);
+                if(error.code === 'auth/requires-recent-login') {
+                    window.showDialog('alert', 'Security Check', 'Please logout and login again to change your password.');
+                } else {
+                    window.showDialog('alert', 'Error', error.message);
+                }
+            } finally {
+                btn.innerHTML = 'Update Password';
+                btn.disabled = false;
+            }
+        });
+
+
+        // --- UI UTILS ---
+        window.showToast = (msg) => {
+            const el = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            el.classList.remove('translate-y-[-200%]');
+            setTimeout(() => el.classList.add('translate-y-[-200%]'), 3000);
+        };
+
+        window.switchTab = (tabName) => {
+            // Hide all tabs
+            document.querySelectorAll('.content-tab').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('animate-fade-in-up'); 
+            });
+            
+            // Show active tab with animation
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            targetTab.classList.remove('hidden');
+            void targetTab.offsetWidth; 
+            targetTab.classList.add('animate-fade-in-up');
+            
+            // Reset Nav Items
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-brand-600', 'text-white', 'shadow-lg', 'shadow-brand-900/20');
+                el.classList.add('text-slate-300', 'hover:bg-white/10', 'hover:text-white');
+                const icon = el.querySelector('i');
+                if(icon) {
+                    if(el.id === 'btn-dashboard' || el.id === 'btn-ai') icon.classList.remove('text-white');
+                    if(el.id === 'btn-projects') icon.classList.add('text-orange-400');
+                    if(el.id === 'btn-ai') icon.classList.add('text-yellow-400');
+                    if(el.id === 'btn-reviews') icon.classList.add('text-yellow-400');
+                }
+                if(el.id === 'btn-assessment') {
+                    el.classList.add('bg-emerald-900/10', 'border', 'border-emerald-500/30');
+                    el.querySelector('span').classList.remove('text-white');
+                    el.querySelector('span').classList.add('text-emerald-100');
+                }
+            });
+            
+            // Activate Nav Item
+            const activeBtn = document.getElementById(`btn-${tabName}`);
+            activeBtn.classList.remove('text-slate-300', 'hover:bg-white/10', 'hover:text-white', 'bg-emerald-900/10', 'border', 'border-emerald-500/30');
+            activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow-lg', 'shadow-brand-900/20');
+            
+            const activeIcon = activeBtn.querySelector('i');
+            if(activeIcon) {
+                activeIcon.classList.remove('text-orange-400', 'text-yellow-400', 'text-emerald-400');
+                activeIcon.classList.add('text-white');
+            }
+            
+            if(tabName === 'assessment') {
+                 activeBtn.querySelector('span').classList.remove('text-emerald-100');
+                 activeBtn.querySelector('span').classList.add('text-white');
+            }
+        };
+
+        // --- NEW: SALES & TARGET LOGIC ---
+        
+        const getCurrentMonthId = () => {
+            const date = new Date();
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        };
+
+        const getTodayId = () => {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // 1. Fetch Targets
+        const fetchTargets = async () => {
+             const monthId = getCurrentMonthId();
+             const docRef = doc(db, "kpi_targets", monthId);
+             const docSnap = await getDoc(docRef);
+
+             if(docSnap.exists()) {
+                 monthlyTargets = docSnap.data();
+             } else {
+                 monthlyTargets = { gelephu: 0, phuntsholing: 0, thimphu: 0, paro: 0 };
+             }
+             updateDashboardUI();
+        };
+
+        // 2. Setup Sales Listeners
+        const setupSalesListeners = () => {
+            const salesCol = collection(db, "kpi_sales");
+            
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0,0,0,0);
+
+            const qMonthly = query(salesCol, where("timestamp", ">=", startOfMonth));
+            
+            onSnapshot(qMonthly, (snapshot) => {
+                monthlyActuals = { gelephu: 0, phuntsholing: 0, thimphu: 0, paro: 0 };
+                
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    if(d.branch) {
+                        monthlyActuals[d.branch] = (monthlyActuals[d.branch] || 0) + Number(d.amount);
+                    }
+                });
+                updateDashboardUI();
+                updateCharts();
+            });
+
+            // Increased limit to 20 for better chart data
+            const qRecent = query(salesCol, orderBy("timestamp", "desc"), limit(20));
+            onSnapshot(qRecent, (snapshot) => {
+                 const tbody = document.getElementById('sales-table-body');
+                 tbody.innerHTML = '';
+                 let count = 0;
+                 const isAdmin = currentUser && currentUser.email === 'dorjisherab2021@gmail.com';
+                 
+                 recentSalesData = []; // Clear for chart
+
+                 snapshot.forEach(doc => {
+                     const data = doc.data();
+                     const id = doc.id;
+                     
+                     // Collect data for trend chart (reverse order later)
+                     recentSalesData.push({
+                        date: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : 'N/A',
+                        amount: Number(data.amount),
+                        branch: data.branch || 'Unknown'
+                     });
+
+                     if(count === 0) latestSales = data;
+                     
+                     // Render Table only for first 10
+                     if(count < 10) {
+                        const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString() : 'N/A';
+                        let branchDisplay = data.branch ? data.branch.charAt(0).toUpperCase() + data.branch.slice(1) : "Unknown";
+                        let amountDisplay = `Nu. ${Number(data.amount).toLocaleString()}`;
+                        
+                        const deleteBtn = isAdmin ? `<button onclick="window.deleteSale('${id}')" class="text-red-400 hover:text-red-600 transition-colors ml-4" title="Delete Log"><i class="fas fa-trash-alt"></i></button>` : '';
+
+                        const row = `
+                            <tr class="group hover:bg-slate-50 transition-colors">
+                                <td class="p-3 text-slate-500 text-xs font-mono">${date}</td>
+                                <td class="p-3 font-medium text-slate-700 capitalize">${branchDisplay}</td>
+                                <td class="p-3 text-slate-600 font-bold">${amountDisplay}</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-1 rounded-full font-bold">Logged</span></td>
+                                <td class="p-3 text-right">
+                                    ${deleteBtn}
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                     }
+                     count++;
+                 });
+                 updateCharts();
+            });
+        };
+
+        // --- CHART RENDER LOGIC ---
+        const updateCharts = () => {
+            // Wait until UI containers exist (tab switched)
+            if(!document.getElementById('revenueChart')) return;
+
+            // 1. Revenue Chart
+            const ctxRev = document.getElementById('revenueChart').getContext('2d');
+            const branches = ['Gelephu', 'Phuntsholing', 'Thimphu', 'Paro'];
+            const actuals = [
+                monthlyActuals.gelephu || 0, 
+                monthlyActuals.phuntsholing || 0, 
+                monthlyActuals.thimphu || 0, 
+                monthlyActuals.paro || 0
+            ];
+            const targets = [
+                monthlyTargets.gelephu || 0, 
+                monthlyTargets.phuntsholing || 0, 
+                monthlyTargets.thimphu || 0, 
+                monthlyTargets.paro || 0
+            ];
+
+            if(revenueChartInstance) revenueChartInstance.destroy();
+            revenueChartInstance = new Chart(ctxRev, {
+                type: 'bar',
+                data: {
+                    labels: branches,
+                    datasets: [
+                        {
+                            label: 'Actual Revenue',
+                            data: actuals,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Target',
+                            data: targets,
+                            backgroundColor: '#e2e8f0',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // 2. Trend Chart
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            // Sort chronological
+            const sortedTrends = [...recentSalesData].reverse(); 
+            
+            if(trendChartInstance) trendChartInstance.destroy();
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: sortedTrends.map(d => d.date),
+                    datasets: [{
+                        label: 'Sales Logged',
+                        data: sortedTrends.map(d => d.amount),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        };
+
+        // 3. Setup Project Listeners
+        const setupProjectListeners = () => {
+            const q = query(collection(db, "kpi_projects"), orderBy("createdAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const listGov = document.getElementById('list-gov');
+                const listRe = document.getElementById('list-re');
+                listGov.innerHTML = '';
+                listRe.innerHTML = '';
+                let cGov = 0, cRe = 0;
+
+                if(snapshot.empty) {
+                     listGov.innerHTML = '<p class="text-center text-slate-400 text-xs py-10">No active government projects.</p>';
+                     listRe.innerHTML = '<p class="text-center text-slate-400 text-xs py-10">No active builder contracts.</p>';
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const statusColors = {
+                        'Ongoing': 'bg-blue-100 text-blue-700',
+                        'Pending': 'bg-yellow-100 text-yellow-700',
+                        'Completed': 'bg-emerald-100 text-emerald-700',
+                        'At Risk': 'bg-red-100 text-red-700'
+                    };
+                    const badgeClass = statusColors[data.status] || 'bg-slate-100 text-slate-600';
+                    
+                    const isAdmin = currentUser && currentUser.email === 'dorjisherab2021@gmail.com';
+                    const deleteAction = isAdmin ? `<button onclick="window.deleteProject('${doc.id}')" class="text-slate-400 hover:text-red-500 transition ml-2"><i class="fas fa-trash"></i></button>` : '';
+
+                    const item = `
+                        <div class="bg-white border border-slate-100 rounded-lg p-3 hover:shadow-md transition flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">${data.name}</h4>
+                                <span class="${badgeClass} text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider mt-1 inline-block">${data.status}</span>
+                            </div>
+                            <div class="flex items-center">
+                                ${deleteAction}
+                            </div>
+                        </div>
+                    `;
+
+                    if(data.type === 'gov') {
+                        listGov.innerHTML += item;
+                        cGov++;
+                    } else {
+                        listRe.innerHTML += item;
+                        cRe++;
+                    }
+                });
+                
+                document.getElementById('count-gov').innerText = cGov;
+                document.getElementById('count-re').innerText = cRe;
+            });
+        };
+
+        // 4. Setup Daily Brand Listeners
+        const setupBrandListeners = () => {
+            const today = getTodayId();
+            const q = query(collection(db, "kpi_daily_brands"), where("date", "==", today));
+            onSnapshot(q, (snapshot) => {
+                dailyBrands = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    dailyBrands[data.branch] = data.name;
+                });
+                updateDashboardUI(); // Refresh cards to show brands
+            });
+        };
+
+        // --- NEW: REVIEW & AI SENTIMENT LOGIC ---
+        
+        window.openPublicReview = () => {
+            document.getElementById('public-review-modal').classList.remove('hidden');
+            document.getElementById('public-review-form').reset();
+        };
+
+        // 5. Handle Review Submission with AI
+        document.getElementById('public-review-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('review-name').value || 'Anonymous';
+            const branch = document.getElementById('review-branch').value;
+            const text = document.getElementById('review-text').value;
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing...';
+            btn.disabled = true;
+
+            try {
+                // Call AI for score
+                const scoreData = await analyzeSentiment(text);
+
+                await addDoc(collection(db, "kpi_reviews"), {
+                    name,
+                    branch,
+                    text,
+                    score: scoreData.score,
+                    sentiment: scoreData.sentiment,
+                    timestamp: new Date()
+                });
+
+                document.getElementById('public-review-modal').classList.add('hidden');
+                window.showDialog('alert', 'Thank You!', 'Your feedback has been submitted and analyzed by our system.');
+            } catch (err) {
+                console.error(err);
+                window.showDialog('alert', 'Error', 'Could not submit review. ' + err.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        async function analyzeSentiment(text) {
+             const apiKey = "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"; // Hardcoded for demo
+             const prompt = `
+                Analyze the sentiment of this customer review for a construction supply company.
+                Review: "${text}"
+                
+                Return ONLY valid JSON:
+                {
+                    "score": number (1-10, where 10 is excellent),
+                    "sentiment": "string" ("Positive", "Neutral", or "Negative")
+                }
+             `;
+
+             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: "You are a sentiment analysis API. Output strictly JSON." },
+                        { role: "user", content: prompt }
+                    ],
+                    response_format: { type: "json_object" }
+                })
+            });
+            const json = await response.json();
+            return JSON.parse(json.choices[0].message.content);
+        }
+
+        // 6. Setup Review Listeners (Dashboard View)
+        const setupReviewListeners = () => {
+             const q = query(collection(db, "kpi_reviews"), orderBy("timestamp", "desc"), limit(20));
+             onSnapshot(q, (snapshot) => {
+                 const container = document.getElementById('reviews-container');
+                 container.innerHTML = '';
+                 
+                 let totalScore = 0;
+                 let count = 0;
+                 let latestSent = '--';
+
+                 snapshot.forEach(doc => {
+                     const data = doc.data();
+                     count++;
+                     totalScore += Number(data.score);
+                     if(count === 1) latestSent = data.sentiment;
+
+                     const badgeColor = data.sentiment === 'Positive' ? 'bg-emerald-100 text-emerald-700' : 
+                                        data.sentiment === 'Negative' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700';
+
+                     const card = `
+                        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">${data.name}</h4>
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold mt-0.5">${data.branch} Branch</p>
+                                </div>
+                                <div class="bg-indigo-50 text-indigo-700 font-bold px-2 py-1 rounded-lg text-xs">
+                                    ${data.score}/10
+                                </div>
+                            </div>
+                            <p class="text-slate-600 text-sm mb-4 leading-relaxed line-clamp-3">"${data.text}"</p>
+                            <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                                <span class="${badgeColor} text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">${data.sentiment}</span>
+                                <span class="text-[10px] text-slate-400">${new Date(data.timestamp.toDate()).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                     `;
+                     container.innerHTML += card;
+                 });
+
+                 // Update Stats
+                 if(count > 0) {
+                     currentAvgCsat = (totalScore / count).toFixed(1);
+                     document.getElementById('avg-csat').innerText = currentAvgCsat;
+                     document.getElementById('total-reviews').innerText = count;
+                     document.getElementById('latest-sentiment').innerText = latestSent;
+                 } else {
+                     currentAvgCsat = 0;
+                 }
+             });
+        };
+
+        window.deleteSale = async (id) => {
+            window.showDialog('confirm', 'Delete Sales Log', 'Are you sure you want to delete this sales log? This action cannot be undone.', async () => {
+                try {
+                    await deleteDoc(doc(db, "kpi_sales", id));
+                    window.showToast("Sales Log Deleted");
+                } catch (err) {
+                    console.error(err);
+                    window.showDialog('alert', 'Error', err.message);
+                }
+            });
+        };
+        
+        window.deleteProject = async (id) => {
+            window.showDialog('confirm', 'Delete Project', 'Remove this project permanently?', async () => {
+                try {
+                    await deleteDoc(doc(db, "kpi_projects", id));
+                    window.showToast("Project Deleted");
+                } catch (err) {
+                    console.error(err);
+                    window.showDialog('alert', 'Error', err.message);
+                }
+            });
+        };
+
+        // 5. UI Update Logic (Cards)
+        const updateDashboardUI = () => {
+            const date = new Date();
+            const monthName = date.toLocaleString('default', { month: 'long' });
+            document.getElementById('month-header').innerText = `${monthName} Performance`;
+            document.getElementById('current-month-display').innerText = `${monthName} ${date.getFullYear()}`;
+
+            const totalActual = Object.values(monthlyActuals).reduce((a, b) => a + b, 0);
+            const totalTarget = Object.values(monthlyTargets).reduce((a, b) => a + b, 0);
+            
+            document.getElementById('hero-live-total').innerText = `Nu. ${totalActual.toLocaleString()}`;
+            document.getElementById('hero-target-total').innerText = totalTarget > 0 ? `Nu. ${totalTarget.toLocaleString()}` : 'Not Set';
+            
+            const pct = totalTarget > 0 ? Math.min((totalActual / totalTarget) * 100, 100) : 0;
+            document.getElementById('hero-progress-bar').style.width = `${pct}%`;
+            document.getElementById('hero-percentage').innerText = `${pct.toFixed(1)}%`;
+
+            const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            const daysRemaining = Math.max(0, lastDay.getDate() - date.getDate());
+            document.getElementById('days-remaining').innerText = daysRemaining;
+
+            // Render Cards dynamically to include Top Brand logic
+            const container = document.getElementById('branch-cards-container');
+            container.innerHTML = '';
+
+            const branches = [
+                { id: 'gelephu', name: 'Gelephu', type: 'Head Office', color: 'blue', icon: 'fa-building' },
+                { id: 'phuntsholing', name: 'Phuntsholing', type: 'Branch', color: 'emerald', icon: 'fa-truck-loading' },
+                { id: 'thimphu', name: 'Thimphu', type: 'Branch', color: 'purple', icon: 'fa-city' },
+                { id: 'paro', name: 'Paro', type: 'Branch', color: 'orange', icon: 'fa-plane' }
+            ];
+
+            branches.forEach(b => {
+                const act = monthlyActuals[b.id] || 0;
+                const tgt = monthlyTargets[b.id] || 0;
+                const brPct = tgt > 0 ? ((act / tgt) * 100).toFixed(0) : 0;
+                const topBrand = dailyBrands[b.id] || 'Not Logged';
+                
+                const card = `
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg transition-all relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-${b.color}-50 flex items-center justify-center text-${b.color}-600">
+                                <i class="fas ${b.icon} text-lg"></i>
+                            </div>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-1 rounded-full uppercase">${b.type}</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-800">${b.name}</h4>
+                        <p class="text-2xl font-bold text-slate-700 mt-1">Nu. ${act.toLocaleString()}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Target: ${tgt > 0 ? 'Nu. ' + tgt.toLocaleString() : '--'}</p>
+                        
+                        <div class="mt-3 bg-slate-50 rounded-lg p-2 border border-slate-100 flex justify-between items-center">
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold">Top Brand Today</p>
+                                <p class="text-xs font-bold text-slate-700 truncate w-24" title="${topBrand}">${topBrand}</p>
+                            </div>
+                            <button onclick="openBrandModal('${b.id}')" class="text-slate-400 hover:text-yellow-500 transition" title="Log Top Brand">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <div class="text-xs font-medium text-emerald-600">${brPct}% Achieved</div>
+                            <button onclick="openLogModal('${b.id}')" class="bg-${b.color}-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-${b.color}-700 transition shadow-md shadow-${b.color}-500/20">
+                                <i class="fas fa-plus mr-1"></i> Log
+                            </button>
+                        </div>
+                         <div class="h-1 bg-slate-100 w-full absolute bottom-0 left-0">
+                            <div class="h-full bg-${b.color}-500 transition-all duration-700" style="width: ${Math.min(brPct, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        };
+
+        // 6. Modal Handlers
+        window.openLogModal = (branch) => {
+            document.getElementById('sales-modal').classList.remove('hidden');
+            document.getElementById('sales-branch-input').value = branch;
+            document.getElementById('modal-branch-name').innerText = branch.charAt(0).toUpperCase() + branch.slice(1);
+            document.getElementById('sales-amount').value = '';
+            document.getElementById('sales-amount').focus();
+        };
+
+        window.openTargetModal = () => {
+            document.getElementById('target-modal').classList.remove('hidden');
+            document.getElementById('tgt-gelephu').value = monthlyTargets.gelephu || '';
+            document.getElementById('tgt-phuntsholing').value = monthlyTargets.phuntsholing || '';
+            document.getElementById('tgt-thimphu').value = monthlyTargets.thimphu || '';
+            document.getElementById('tgt-paro').value = monthlyTargets.paro || '';
+        };
+
+        window.openBrandModal = (branch) => {
+            document.getElementById('brand-modal').classList.remove('hidden');
+            document.getElementById('brand-branch-input').value = branch;
+            document.getElementById('brand-modal-branch').innerText = branch.charAt(0).toUpperCase() + branch.slice(1);
+            document.getElementById('brand-name').value = '';
+            document.getElementById('brand-name').focus();
+        };
+
+        window.openProjectModal = () => {
+             document.getElementById('project-modal').classList.remove('hidden');
+             document.getElementById('project-form').reset();
+        };
+
+        // 7. Submit Handlers
+        
+        // Save Sale
+        document.getElementById('sales-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const branch = document.getElementById('sales-branch-input').value;
+            const amount = document.getElementById('sales-amount').value;
+            const btn = e.target.querySelector('button[type="submit"]');
+            
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "kpi_sales"), {
+                    branch: branch,
+                    amount: Number(amount),
+                    timestamp: new Date(),
+                    loggedBy: currentUser.email
+                });
+                document.getElementById('sales-modal').classList.add('hidden');
+                window.showToast("Sales Logged Successfully");
+            } catch (err) {
+                console.error(err);
+                window.showDialog('alert', 'Error', err.message);
+            } finally {
+                btn.innerHTML = 'Log Sale';
+                btn.disabled = false;
+            }
+        });
+
+        // Save Targets
+        document.getElementById('target-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const targets = {
+                gelephu: Number(document.getElementById('tgt-gelephu').value),
+                phuntsholing: Number(document.getElementById('tgt-phuntsholing').value),
+                thimphu: Number(document.getElementById('tgt-thimphu').value),
+                paro: Number(document.getElementById('tgt-paro').value)
+            };
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            try {
+                const monthId = getCurrentMonthId();
+                await setDoc(doc(db, "kpi_targets", monthId), targets);
+                monthlyTargets = targets;
+                updateDashboardUI();
+                document.getElementById('target-modal').classList.add('hidden');
+                window.showToast("Monthly Targets Updated");
+            } catch (err) {
+                console.error(err);
+                window.showDialog('alert', 'Error', err.message);
+            } finally {
+                btn.innerHTML = 'Set Targets';
+                btn.disabled = false;
+            }
+        });
+
+        // Save Daily Brand
+        document.getElementById('brand-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const branch = document.getElementById('brand-branch-input').value;
+            const name = document.getElementById('brand-name').value;
+            const today = getTodayId();
+            
+            // We use a composite ID to ensure one entry per branch per day. 
+            // setDoc with merge will overwrite/update for the same day.
+            const docId = `${today}_${branch}`;
+            
+            try {
+                await setDoc(doc(db, "kpi_daily_brands", docId), {
+                    branch, name, date: today, timestamp: new Date()
+                });
+                document.getElementById('brand-modal').classList.add('hidden');
+                window.showToast("Top Brand Updated");
+            } catch (err) {
+                console.error(err);
+                window.showDialog('alert', 'Error', err.message);
+            }
+        });
+
+        // Save Project
+        document.getElementById('project-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('proj-name').value;
+            const type = document.getElementById('proj-type').value;
+            const status = document.getElementById('proj-status').value;
+
+            try {
+                await addDoc(collection(db, "kpi_projects"), {
+                    name, type, status,
+                    createdAt: new Date(),
+                    createdBy: currentUser.email
+                });
+                document.getElementById('project-modal').classList.add('hidden');
+                window.showToast("Project Added");
+            } catch(err) {
+                 console.error(err);
+                 window.showDialog('alert', 'Error', err.message);
+            }
+        });
+
+        // --- AI AUTO-FILL LOGIC ---
+        window.autoFillReport = async () => {
+            const btn = document.getElementById('ai-fill-btn');
+            // Hardcoded Key provided by user
+            const apiKey = "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";
+
+            // UI Loading State
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing Data...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            // Gather Context
+            const salesData = monthlyActuals || { gelephu: 0, phuntsholing: 0, thimphu: 0, paro: 0 };
+            const brandsContext = Object.values(dailyBrands).join(', ') || "No top brands logged recently.";
+            const reviewsContext = `Current Average CSAT: ${currentAvgCsat}/10 based on recent reviews.`;
+
+            const prompt = `
+                You are a Senior Strategic Consultant for M/s. Chimi Jamyang Pvt Ltd (CJPL), a leading Construction & Agriculture supplier in Bhutan.
+                
+                Task: Generate a Monthly Performance Review & Improvement Plan.
+                Output Format: JSON.
+                
+                Current Cumulative Sales Data (Actuals): ${JSON.stringify(salesData)}
+                Current Targets: ${JSON.stringify(monthlyTargets)}
+                Log Data (Top Brands logged by staff): ${brandsContext}
+                Log Data (CSAT Reviews): ${reviewsContext}
+                
+                Requirements:
+                1. 'targets': Create realistic sales targets (approx 10-20% higher than actuals).
+                2. 'highlights': 
+                   - 'brand': Determine the overall top performing brand based on the 'Log Data' provided. If ambiguous, pick the most frequent one or a major brand like Asian Paints.
+                   - 'csat': Use the provided CSAT score from logs.
+                3. 'growth': Estimate MoM growth %.
+                4. 'letter_content': Write a FORMAL LETTER addressed to "The Management, CJPL".
+                   - Structure:
+                     - Salutation (Dear Management,)
+                     - Opening: Brief overview of the month's performance.
+                     - Section 1: "Areas for Improvement". Explicitly identify low performing branches.
+                     - Section 2: "Growth Analysis". Compare current sales to targets.
+                     - Closing: Strategic recommendation for next month.
+                   - Tone: Professional, constructive, and data-driven.
+                
+                Return ONLY valid JSON in this format:
+                {
+                    "targets": { "total": number, "gelephu": number, "phuntsholing": number, "thimphu": number, "paro": number },
+                    "highlights": { "brand": "string", "csat": number },
+                    "growth": { "construction": number, "electrical": number, "agri": number },
+                    "letter_content": "string (The full letter text)"
+                }
+            `;
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { role: "system", content: "You are a JSON-only API. Output strict JSON." },
+                            { role: "user", content: prompt }
+                        ],
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                const json = await response.json();
+                const result = JSON.parse(json.choices[0].message.content);
+
+                // Populate Form
+                document.getElementById('report-letter').value = result.letter_content;
+                
+                document.getElementById('target-total').value = result.targets.total;
+                document.getElementById('target-gelephu').value = result.targets.gelephu;
+                document.getElementById('target-phuntsholing').value = result.targets.phuntsholing;
+                document.getElementById('target-thimphu').value = result.targets.thimphu;
+                document.getElementById('target-paro').value = result.targets.paro;
+
+                document.getElementById('report-brand').value = result.highlights.brand;
+                document.getElementById('report-csat').value = result.highlights.csat;
+
+                document.getElementById('growth-construction').value = result.growth.construction;
+                document.getElementById('growth-electrical').value = result.growth.electrical;
+                document.getElementById('growth-agri').value = result.growth.agri;
+
+                window.showToast("Report & Letter Generated!");
+
+            } catch (err) {
+                console.error(err);
+                window.showDialog('alert', 'API Error', "Failed to generate report. Check API Key or Console.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        };
+
+        // --- PDF GENERATION LOGIC ---
+        window.generatePDF = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // 1. Gather Data
+            const targets = {
+                total: document.getElementById('target-total').value || 0,
+                gelephu: document.getElementById('target-gelephu').value || 0,
+                phuntsholing: document.getElementById('target-phuntsholing').value || 0,
+                thimphu: document.getElementById('target-thimphu').value || 0,
+                paro: document.getElementById('target-paro').value || 0
+            };
+            
+            const letter = document.getElementById('report-letter').value || "No letter generated.";
+
+            const highlights = {
+                brand: document.getElementById('report-brand').value || 'N/A',
+                csat: document.getElementById('report-csat').value || 'N/A'
+            };
+
+            const growth = {
+                con: document.getElementById('growth-construction').value || 0,
+                ele: document.getElementById('growth-electrical').value || 0,
+                agr: document.getElementById('growth-agri').value || 0
+            };
+
+            // Get Actuals
+            const actuals = monthlyActuals || { gelephu: 0, phuntsholing: 0, thimphu: 0, paro: 0 };
+            const totalActual = Object.values(actuals).reduce((a,b)=>a+b,0);
+
+            // Helper
+            const calcAch = (act, tgt) => tgt > 0 ? ((act/tgt)*100).toFixed(1) + '%' : 'N/A';
+
+            // --- PDF DESIGN ---
+            
+            // Header
+            doc.setFillColor(30, 58, 138); // Brand 900 equivalent
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            doc.setFontSize(22);
+            doc.setTextColor(255, 255, 255); 
+            doc.setFont("helvetica", "bold");
+            doc.text("M/s. Chimi Jamyang Pvt Ltd.", 14, 20);
+            
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(219, 234, 254); // Brand 100
+            doc.text("Monthly Performance Review & Improvement Plan", 14, 28);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 160, 28);
+
+            let currentY = 55;
+
+            // SECTION 0: MANAGEMENT LETTER (Replaces Summary)
+            doc.setFontSize(14);
+            doc.setTextColor(30, 58, 138);
+            doc.setFont("helvetica", "bold");
+            doc.text("Report to Management", 14, 50);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(51, 65, 85); // Slate 700
+            doc.setFont("helvetica", "normal");
+            
+            const splitLetter = doc.splitTextToSize(letter, 180);
+            doc.text(splitLetter, 14, 58);
+            
+            // Adjust Y based on letter length
+            currentY = 58 + (splitLetter.length * 5) + 15;
+
+            // Page Break Check
+            if (currentY > 200) {
+                doc.addPage();
+                currentY = 20;
+            }
+
+            // SECTION 1: SALES TABLE
+            doc.setFontSize(14);
+            doc.setTextColor(30, 58, 138);
+            doc.setFont("helvetica", "bold");
+            doc.text("1. Sales Performance Data", 14, currentY);
+
+            const tableData = [
+                ['Total Company Revenue', `Nu. ${targets.total}`, `Nu. ${totalActual}`, calcAch(totalActual, targets.total)],
+                ['Gelephu (Head Office)', `Nu. ${targets.gelephu}`, `Nu. ${actuals.gelephu}`, calcAch(actuals.gelephu, targets.gelephu)],
+                ['Phuntsholing Branch', `Nu. ${targets.phuntsholing}`, `Nu. ${actuals.phuntsholing}`, calcAch(actuals.phuntsholing, targets.phuntsholing)],
+                ['Thimphu Branch', `Nu. ${targets.thimphu}`, `Nu. ${actuals.thimphu}`, calcAch(actuals.thimphu, targets.thimphu)],
+                ['Paro Branch', `Nu. ${targets.paro}`, `Nu. ${actuals.paro}`, calcAch(actuals.paro, targets.paro)],
+            ];
+
+            doc.autoTable({
+                startY: currentY + 5,
+                head: [['Branch / Metric', 'Target', 'Actual', 'Achievement']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { fillColor: [37, 99, 235] }, // Brand 600
+                styles: { fontSize: 10, cellPadding: 4, textColor: [51, 65, 85] },
+                columnStyles: {
+                    0: { fontStyle: 'bold' },
+                    3: { fontStyle: 'bold', halign: 'center' }
+                }
+            });
+
+            currentY = doc.lastAutoTable.finalY + 20;
+
+            // Page Break Check
+            if (currentY > 240) {
+                doc.addPage();
+                currentY = 20;
+            }
+
+            // SECTION 2: HIGHLIGHTS & GROWTH
+            doc.setFontSize(14);
+            doc.setTextColor(30, 58, 138);
+            doc.text("2. Key Indicators & Growth", 14, currentY);
+            
+            // Draw Boxes
+            const drawBox = (x, title, value) => {
+                doc.setDrawColor(226, 232, 240);
+                doc.setFillColor(248, 250, 252);
+                doc.roundedRect(x, currentY + 5, 55, 25, 3, 3, 'FD');
+                
+                doc.setFontSize(9);
+                doc.setTextColor(100, 116, 139);
+                doc.text(title, x + 5, currentY + 12);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(30, 58, 138);
+                doc.setFont(undefined, 'bold');
+                doc.text(String(value), x + 5, currentY + 22);
+                doc.setFont(undefined, 'normal');
+            };
+
+            drawBox(14, "Top Brand", highlights.brand);
+            drawBox(77, "CSAT Score", `${highlights.csat} / 10`);
+
+            currentY += 40;
+
+            const growthData = [
+                ['Construction Materials', `${growth.con}%`, growth.con > 0 ? 'Positive' : 'Review Needed'],
+                ['Electrical & Plumbing', `${growth.ele}%`, growth.ele > 0 ? 'Positive' : 'Review Needed'],
+                ['Agriculture Tools', `${growth.agr}%`, growth.agr > 0 ? 'Positive' : 'Review Needed']
+            ];
+
+            doc.autoTable({
+                startY: currentY + 5,
+                head: [['Category', 'MoM Growth', 'Status']],
+                body: growthData,
+                theme: 'striped',
+                headStyles: { fillColor: [15, 118, 110] }, // Emeraldish
+            });
+
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for(let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(148, 163, 184);
+                doc.text("Generated by CJPL AI Analyst System.", 14, 285);
+                doc.text(`Page ${i} of ${pageCount}`, 190, 285, { align: 'right' });
+            }
+
+            // Save
+            doc.save("CJPL_Management_Improvement_Report.pdf");
+            
+            // Close Modal
+            document.getElementById('report-modal').classList.add('hidden');
+            window.showToast("Report Downloaded Successfully");
+        };
+
+        // --- KPI 5: AI LOGIC (GROQ) ---
+
+        window.handleChatEnter = (e) => {
+            if(e.key === 'Enter') window.sendToGroq();
+        };
+
+        window.sendToGroq = async () => {
+            const inputEl = document.getElementById('chat-input');
+            const msg = inputEl.value;
+            // Hardcoded Key provided by user
+            const apiKey = "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";
+
+            const chatBox = document.getElementById('chat-messages');
+            const btn = document.getElementById('send-btn');
+
+            if(!msg) return;
+
+            // Add User Message
+            chatBox.innerHTML += `
+                <div class="flex justify-end animate-scale-in">
+                    <div class="chat-bubble bg-brand-600 text-white rounded-br-none shadow-brand-600/30">
+                        ${msg}
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center ml-2 mb-1 flex-shrink-0">
+                         <i class="fas fa-user text-slate-500 text-xs"></i>
+                    </div>
+                </div>
+            `;
+            inputEl.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Loading State
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+
+            // Prepare Context
+            const salesContext = monthlyActuals ? JSON.stringify(monthlyActuals) : "No sales data available.";
+            
+            const systemPrompt = `
+                You are the Chief Business Analyst for M/s. Chimi Jamyang Pvt Ltd in Bhutan.
+                Company Profile:
+                - One Roof solution for Construction, Hardware, Electrical, Agriculture.
+                - Branches: Gelephu (HO), Phuntsholing, Thimphu, Paro.
+                - Services: Wholesale, Retail, Project-based, Door-to-door delivery.
+                
+                Current Monthly Data:
+                - Sales Actuals: ${salesContext}
+                - Sales Targets: ${JSON.stringify(monthlyTargets)}
+                
+                Task: Answer the user's business question based on this data. Be professional, concise, and analytical. Use Markdown formatting for lists or bold text.
+            `;
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: msg }
+                        ]
+                    })
+                });
+
+                const json = await response.json();
+                
+                if(json.error) {
+                    throw new Error(json.error.message);
+                }
+
+                const botReply = json.choices[0].message.content;
+
+                // Add Bot Message
+                // Using simple replace for newlines to BR, but ideally use a markdown parser library.
+                // Added basic bold support replacement for aesthetics.
+                let formattedReply = botReply
+                    .replace(/\n/g, '<br>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                chatBox.innerHTML += `
+                     <div class="flex items-end animate-scale-in">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white shadow-md mb-1 mr-2 flex-shrink-0">
+                             <i class="fas fa-robot text-xs"></i>
+                        </div>
+                        <div class="chat-bubble bg-white text-slate-700 rounded-bl-none border border-slate-100 markdown-body">
+                            ${formattedReply}
+                        </div>
+                    </div>
+                `;
+
+            } catch (err) {
+                chatBox.innerHTML += `
+                     <div class="flex items-end animate-scale-in">
+                         <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-1 mr-2 flex-shrink-0">
+                             <i class="fas fa-exclamation-triangle text-xs"></i>
+                        </div>
+                        <div class="chat-bubble bg-red-50 text-red-800 rounded-bl-none border border-red-100">
+                            Error: ${err.message}
+                        </div>
+                    </div>
+                `;
+            } finally {
+                chatBox.scrollTop = chatBox.scrollHeight;
+                btn.innerHTML = '<i class="fas fa-paper-plane text-sm"></i>';
+                btn.disabled = false;
+            }
+        };
+
+    </script>
+</body>
+</html>
